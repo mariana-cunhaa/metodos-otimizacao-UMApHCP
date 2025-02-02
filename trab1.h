@@ -57,5 +57,4 @@ void salvar_resultados(const char *arquivo_saida, int hubs_final[], double custo
 void ler_solucao_arquivo(const char* arquivo, Solucao* solucao);
 void imprimir_solucao_lida(Solucao &solucao_lida);
 void clonar_solucao(Solucao* de, Solucao* para);
-
 #endif //TRAB1_H_INCLUDED
