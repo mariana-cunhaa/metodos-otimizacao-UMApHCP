@@ -6,59 +6,36 @@
 
 using namespace std;
 
-int main()
+const char *arquivo_saida = "solucao_hubs.txt";
+int main(int argc, char* argv[])
 {
     // Zerando a matriz de distâncias.
     memset(&matriz_distancia, 0, sizeof(matriz_distancia));
-    Solucao solucao;
-    // Inicializando o vetor de hubs da solução
-    memset(&solucao.hubs, -1, sizeof(solucao.hubs));
 
-    const char *arquivo_entrada = "instancias/inst20.txt";
+    // Nome do arquivo passado por CLI
+    const char* arquivo_entrada = argv[1];
     ler_arquivo(arquivo_entrada);
-    const char *arquivo_saida = "";
-    //testar_dados(arquivo_saida);
+   
+    // testar_dados(arquivo_saida);
 
     preencher_matriz_distancia();
     //imprimir_matriz_distancia();
 
-    num_hubs = 4;
+    // Numeros de hubs passado por CLI
+    num_hubs = atoi(argv[2]);
     
     int hubs_gulosa[MAX_HUB];
     double custo_gulosa;
-    printf("Hubs Gulosa:\n");
+    // printf("Hubs Gulosa:\n");
 
     heu_cons_gulosa(num_hubs, hubs_gulosa, &custo_gulosa);
-    for (int i = 0; i < num_hubs; i++) {
-        printf("%d ", hubs_gulosa[i]);
-    }
-    printf("\n");
-    printf("\n%lf", custo_gulosa);
-    printf("\n");
 
-    // Exemplo de teste da função de ler arquivo que foi gerado
-    Solucao solucao_lida;
-    ler_solucao_arquivo("solucao_hubs.txt", &solucao_lida);
+    //Solucao solucao_lida, solucao_copiada;
+    //ler_solucao_arquivo("solucao_hubs.txt", &solucao_lida);
+
+    //clonar_solucao(&solucao_lida, &solucao_copiada);
     
-    // Imprime a solução lida para verificar
-    printf("FO: %.2lf\n", solucao_lida.fo);
-    printf("HUBS: [");
-    for (int i = 0; i < num_hubs; i++) {
-        if (solucao_lida.hubs[i] == -1) break;
-        printf("%d%s", solucao_lida.hubs[i], (i < num_hubs - 1) ? ", " : "");
-    }
-    printf("]\n\n");
-    
-    printf("Algumas rotas lidas:\n");
-    printf("OR\tH1\tH2\tDS\tCUSTO\n");
-    for (int i = 0; i < 5; i++) { // Imprime as 5 primeiras rotas como exemplo
-        printf("%d\t%d\t%d\t%d\t%.2lf\n", 
-               solucao_lida.rotas[i].origem,
-               solucao_lida.rotas[i].h1,
-               solucao_lida.rotas[i].h2,
-               solucao_lida.rotas[i].destino,
-               solucao_lida.rotas[i].custo);
-    }
+    //imprimir_solucao_lida(solucao_copiada);
 
     return 0;
 
@@ -156,7 +133,7 @@ void heu_cons_gulosa(int num_hubs, int hubs_final[], double* custo_gulosa) {
         hubs_final[i] = hubs_selecionados[i]; 
     }
     *custo_gulosa = calcular_custo_maximo(hubs_selecionados, num_hubs);
-    salvar_resultados(hubs_final, *custo_gulosa);
+    salvar_resultados(arquivo_saida, hubs_final, *custo_gulosa);
 }
 
 double calcular_custo_maximo(int hubs_selecionados[], int qtd_hubs) {
@@ -199,51 +176,37 @@ int encontrar_hub_mais_proximo(int no, int hubs_selecionados[], int qtd_hubs) {
     return mais_proximo;
 }
 
-void salvar_resultados(int hubs_final[], double custo_gulosa) {
-    FILE *file = fopen("solucao_hubs.txt", "w");
-    if (!file) {
+void salvar_resultados(const char *arquivo_saida, int hubs_final[], double custo_gulosa) {
+    FILE *f = fopen(arquivo_saida, "w");
+    if (!f) {
         printf("Erro ao abrir o arquivo!\n");
         return;
     }
-    
-    fprintf(file, "n: %d\tp: %d\n", num_nos, num_hubs);
-    fprintf(file, "FO: %.2lf\n", custo_gulosa);
-    fprintf(file, "HUBS: [");
-    for (int i = 0; i < num_hubs; i++) {
-        fprintf(file, "%d%s", hubs_final[i], (i < num_hubs - 1) ? ", " : "");
+
+    if (strcmp(arquivo_saida, "") == 0){
+        f = stdout;
     }
-    fprintf(file, "]\n\n");
-    
-    fprintf(file, "OR\tH1\tH2\tDS\tCUSTO\n");
-    for (int i = 0; i < num_nos; i++) {
-        int hub1 = hubs_final[i % num_hubs];
-        int hub2 = hubs_final[(i + 1) % num_hubs];
-        int destino = (i + 2) % num_nos;
-        double custo = BETA * matriz_distancia[i][hub1] 
-                        + ALPHA * matriz_distancia[hub1][hub2]
-                        + LAMBDA * matriz_distancia[hub2][destino];
-        fprintf(file, "%d\t%d\t%d\t%d\t%.2lf\n", i, hub1, hub2, destino, custo);
+    else {
+        fprintf(f, "n: %d\tp: %d\n", num_nos, num_hubs);
+        fprintf(f, "FO: %.2lf\n", custo_gulosa);
+        fprintf(f, "HUBS: [");
+        for (int i = 0; i < num_hubs; i++) {
+            fprintf(f, "%d%s", hubs_final[i], (i < num_hubs - 1) ? ", " : "");
+        }
+        fprintf(f, "]\n\n");
+        
+        fprintf(f, "OR\tH1\tH2\tDS\tCUSTO\n");
+        for (int i = 0; i < num_nos; i++) {
+            int hub1 = hubs_final[i % num_hubs];
+            int hub2 = hubs_final[(i + 1) % num_hubs];
+            int destino = (i + 2) % num_nos;
+            double custo = BETA * matriz_distancia[i][hub1] 
+                            + ALPHA * matriz_distancia[hub1][hub2]
+                            + LAMBDA * matriz_distancia[hub2][destino];
+            fprintf(f, "%d\t%d\t%d\t%d\t%.2lf\n", i, hub1, hub2, destino, custo);
+        }
     }
-    fclose(file);
-    
-    printf("n: %d\tp: %d\n", num_nos, num_hubs);
-    printf("FO: %.2lf\n", custo_gulosa);
-    printf("HUBS: [");
-    for (int i = 0; i < num_hubs; i++) {
-        printf("%d%s", hubs_final[i], (i < num_hubs - 1) ? ", " : "");
-    }
-    printf("]\n\n");
-    
-    printf("OR\tH1\tH2\tDS\tCUSTO\n");
-    for (int i = 0; i < num_nos; i++) {
-        int hub1 = hubs_final[i % num_hubs];
-        int hub2 = hubs_final[(i + 1) % num_hubs];
-        int destino = (i + 2) % num_nos;
-        double custo = BETA * matriz_distancia[i][hub1] 
-                        + ALPHA * matriz_distancia[hub1][hub2]
-                        + LAMBDA * matriz_distancia[hub2][destino];
-        printf("%d\t%d\t%d\t%d\t%.2lf\n", i, hub1, hub2, destino, custo);
-    }
+    fclose(f);
 }
 
 void ler_solucao_arquivo(const char* arquivo, Solucao* solucao) {
@@ -254,8 +217,7 @@ void ler_solucao_arquivo(const char* arquivo, Solucao* solucao) {
     }
 
     // Lê o número de nós e hubs
-    int n, p;
-    fscanf(f, "n: %d p: %d\n", &n, &p);
+    fscanf(f, "n: %d p: %d\n", &solucao->qtd_nos, &solucao->qtd_nos);
 
     // Lê o valor da função objetivo
     fscanf(f, "FO: %lf\n", &solucao->fo);
@@ -295,4 +257,31 @@ void ler_solucao_arquivo(const char* arquivo, Solucao* solucao) {
     }
 
     fclose(f);
+}
+
+void imprimir_solucao_lida(Solucao& solucao_lida) {
+    // Imprime a solução lida para verificar
+    printf("n: %d\tp: %d\n", solucao_lida.qtd_nos, solucao_lida.qtd_hubs);
+    printf("FO: %.2lf\n", solucao_lida.fo);
+    printf("HUBS: [");
+    for (int i = 0; i < num_hubs; i++) {
+        if (solucao_lida.hubs[i] == -1) break;
+        printf("%d%s", solucao_lida.hubs[i], (i < num_hubs - 1) ? ", " : "");
+    }
+    printf("]\n\n");
+    
+    printf("Algumas rotas lidas:\n");
+    printf("OR\tH1\tH2\tDS\tCUSTO\n");
+    for (int i = 0; i < num_nos; i++) { // Imprime as 5 primeiras rotas como exemplo
+        printf("%d\t%d\t%d\t%d\t%.2lf\n", 
+               solucao_lida.rotas[i].origem,
+               solucao_lida.rotas[i].h1,
+               solucao_lida.rotas[i].h2,
+               solucao_lida.rotas[i].destino,
+               solucao_lida.rotas[i].custo);
+    }
+}
+
+void clonar_solucao(Solucao* de, Solucao* para) {
+    memcpy(para, de, sizeof(Solucao));
 }
