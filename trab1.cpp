@@ -30,12 +30,16 @@ int main(int argc, char* argv[])
 
     heu_cons_gulosa(num_hubs, hubs_gulosa, &custo_gulosa);
 
-    //Solucao solucao_lida, solucao_copiada;
-    //ler_solucao_arquivo("solucao_hubs.txt", &solucao_lida);
+    Solucao solucao_lida, solucao_copiada;
+    ler_solucao_arquivo("solucao_hubs.txt", &solucao_lida);
 
     //clonar_solucao(&solucao_lida, &solucao_copiada);
     
     //imprimir_solucao_lida(solucao_copiada);
+
+    // Calculo da FO a partir do arquivo de entrada.
+    double fo = calcular_custo_maximo(solucao_lida.hubs, num_hubs);
+    printf("%lf", fo);
 
     return 0;
 
