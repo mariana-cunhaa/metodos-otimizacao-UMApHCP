@@ -23,6 +23,8 @@ typedef struct Rota {
 
 typedef struct Solucao {
     double fo;
+    int qtd_hubs;
+    int qtd_nos;
     int hubs[MAX_HUB];
     Rota rotas[MAX_NO];
 } Solucao;
@@ -51,7 +53,9 @@ int is_hub(int hub);
 
 // Heurística gulosa
 void heu_cons_gulosa(int num_hubs, int hubs_final[], double* custo_gulosa);
-void salvar_resultados(int hubs_final[], double custo_gulosa);
+void salvar_resultados(const char *arquivo_saida, int hubs_final[], double custo_gulosa);
 void ler_solucao_arquivo(const char* arquivo, Solucao* solucao);
+void imprimir_solucao_lida(Solucao &solucao_lida);
+void clonar_solucao(Solucao* de, Solucao* para);
 
 #endif //TRAB1_H_INCLUDED
